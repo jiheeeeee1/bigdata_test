@@ -1,0 +1,64 @@
+# Bigdata 분석기사
+# 1. 작업형 1유형
+# 두 개만 알면 10점은 보장된다: order, head, ifelse, IQR, print 함수
+# 대부분 유형은 비슷하다. 특정 조건에 맞는 행을 인덱싱하여 값을 대체하고, 평균/중앙값/최빈도/min-max scaling 등을 구해서 print 함수로 출력하는 과정!
+
+
+#Q. BostonHousing data에서 crim값 상위 10개의 값을 10번째 값으로 모두 바꾸고, age 80 이상의 crim 평균을 구하시오
+
+boston<-BostonHousing
+boston<-boston[order(boston$crim, decreasing=TRUE),] # 데이터를 순서대로 정렬한다
+top<-head(boston$crim,10) # 10순위 데이터까지 뽑아서 새 데이터셋을 만든다
+ten<-top[10] # 그 중 10번째 데이터를 변수로 저장한다
+boston$crim<-ifelse(boston$crim>=ten, ten, boston$crim) # 10순위보다 큰 수는 모두 ten으로 대체한다
+df<-ifelse(boston$age>=80,boston$crim,"") # age 80 이상 남기고 모두 결측치 처리한다
+df_1<-as.numeric(df) # 데이터 형태르 바꾼다
+result<-mean(df_1,na.rm=TRUE)
+print(result) # 결과 도출
+
+
+# Q. BostonHousing data에서 crim항목이 1보다 작거나 같은 경우에 medv항목의 mean값을 구하시오
+
+boston<-BostonHousing
+df_1<-ifelse(boston$crim<=1, boston$medv, "")
+df_2<-as.numeric(df_1)
+result<-mean(df_2,na.rm=TRUE)
+print(result)
+
+# Q. iris 데이터 세트에서 Species가 virginica인 항목에서 Sepal.Length가 6보다 크면 1, 
+아니면 0으로 파생 컬럼 Len을 생성 후 Len 컬럼의 sum 값을 구하시오
+
+factor_s<-as.factor(iris$Species)
+df<-cbind(iris,factor_s)
+df_1<-ifelse(iris$Species=="virginica" & iris$Sepal.Length>6, 1, 0)
+Len<-as.numeric(df_1)
+result<-sum(Len)
+print(result)
+
+Q. airquality 데이터 Ozone 결측값을 없애고 평균 값을 구한 값으로 대체하고, median 값에서 2 x IQR을 뺀 값과 median 값에서 2 x IQR을 더한 값 사이에 존재하는 Ozone값의 합계를 구하시오.
+
+oz_mean<-mean(airquality$Ozone, na.rm=TRUE)
+airquality$Ozone<-ifelse(is.na(airquality$Ozone), oz_mean, airquality$Ozone)
+high_range<-median(airquality$Ozone)+2*IQR(airquality$Ozone)
+low_range<-median(airquality$Ozone)-2*IQR(airquality$Ozone)
+df_1<-ifelse(airquality$Ozone>=low_range & airquality$Ozone<=high_range, airquality$Ozone, "")
+df_2<-as.numeric(df_1)
+result<-sum(df_2)
+print(result)
+
+Q. ChickWeight data 시간(Time)이 10인 데이터를 훈련 데이터로 생성하고 무게(weight)가 상위 30번째 이상 값을 평균으로 변환한 후 변환하기 전, 후의 평균의 차이를 구하시오.
+
+library(MASS)
+data(ChickWeight)
+chick$weight<-ifelse(chick$Time==10, chick$weight, "")
+chick$weight<-as.numeric(chick$weight)
+result1<-mean(chick$weight,na.rm=TRUE)
+print(result1)
+df_1<-chick[order(chick$weight, decreasing=TRUE),]
+top<-head(df_1,30)
+top_30<-df_1$weight[30]
+df_4<-ifelse(df_1$weight>=top_30,result1,df_1$weight)
+df_4<-as.numeric(df_4)
+result2<-mean(df_4,na.rm=TRUE)
+result=result1-result2
+print(result)
